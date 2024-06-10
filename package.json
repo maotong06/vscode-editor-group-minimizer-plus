@@ -119,7 +119,7 @@
       ]
     },
     "views": {
-      "panel": [
+      "minimizedGroups": [
         {
           "id": "minimizedGroups",
           "name": "Minimized Groups"
