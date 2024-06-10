@@ -1,20 +1,20 @@
 {
-  "name": "vscode-editor-group-minimizer",
-  "homepage": "https://github.com/suhay/vscode-editor-group-minimizer/blob/master/README.md",
+  "name": "vscode-editor-group-minimizer-plus",
+  "homepage": "https://github.com/maotong06/vscode-editor-group-minimizer-plus/blob/master/README.md",
   "bugs": {
-    "url": "https://github.com/suhay/vscode-editor-group-minimizer/issues"
+    "url": "https://github.com/maotong06/vscode-editor-group-minimizer-plus/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/suhay/vscode-editor-group-minimizer.git"
+    "url": "https://github.com/maotong06/vscode-editor-group-minimizer-plus.git"
   },
   "author": {
-    "name": "Matt Suhay",
-    "email": "matthew.suhay@gmail.com"
+    "name": "maotong06",
+    "email": "maotong06@qq.com"
   },
-  "displayName": "Editor Group Minimizer",
+  "displayName": "Editor Group Minimizer Plus",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.44.0"
   },
@@ -33,17 +33,21 @@
   ],
   "activationEvents": [
     "onView:minimizedGroups",
-    "onCommand:vscode-editor-group-minimizer.minimize"
+    "onCommand:vscode-editor-group-minimizer-plus.minimize"
   ],
   "main": "./dist/extension",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-editor-group-minimizer.minimize",
+        "command": "vscode-editor-group-minimizer-plus.minimize",
         "title": "Minimize Editor Group"
       },
       {
-        "command": "vscode-editor-group-minimizer.restore",
+        "command": "vscode-editor-group-minimizer-plus.minimizeAsAdd",
+        "title": "Minimize Editor Group To Add"
+      },
+      {
+        "command": "vscode-editor-group-minimizer-plus.restore",
         "title": "Restore",
         "icon": {
           "light": "resources/light/restore.svg",
@@ -51,7 +55,7 @@
         }
       },
       {
-        "command": "vscode-editor-group-minimizer.remove",
+        "command": "vscode-editor-group-minimizer-plus.remove",
         "title": "Remove",
         "icon": {
           "light": "resources/light/clear.svg",
@@ -59,60 +63,63 @@
         }
       },
       {
-        "command": "vscode-editor-group-minimizer.rename",
+        "command": "vscode-editor-group-minimizer-plus.rename",
         "title": "Rename"
       },
       {
-        "command": "vscode-editor-group-minimizer.addToGroup",
+        "command": "vscode-editor-group-minimizer-plus.addToGroup",
         "title": "Add to a Minimized Group"
       },
       {
-        "command": "vscode-editor-group-minimizer.removeFromGroup",
+        "command": "vscode-editor-group-minimizer-plus.removeFromGroup",
         "title": "Remove from Group"
       }
     ],
     "menus": {
       "editor/title/context": [
         {
-          "command": "vscode-editor-group-minimizer.addToGroup"
+          "command": "vscode-editor-group-minimizer-plus.addToGroup"
         }
       ],
       "editor/title": [
         {
-          "command": "vscode-editor-group-minimizer.minimize"
+          "command": "vscode-editor-group-minimizer-plus.minimize"
+        },
+        {
+          "command": "vscode-editor-group-minimizer-plus.minimizeAsAdd"
         }
       ],
       "view/item/context": [
         {
-          "command": "vscode-editor-group-minimizer.remove",
+          "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup",
           "group": "inline"
         },
         {
-          "command": "vscode-editor-group-minimizer.restore",
+          "command": "vscode-editor-group-minimizer-plus.restore",
           "when": "view == minimizedGroups && viewItem == editorGroup",
           "group": "inline"
         },
         {
-          "command": "vscode-editor-group-minimizer.remove",
+          "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.restore",
+          "command": "vscode-editor-group-minimizer-plus.restore",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.rename",
+          "command": "vscode-editor-group-minimizer-plus.rename",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.removeFromGroup",
+          "command": "vscode-editor-group-minimizer-plus.removeFromGroup",
           "when": "view == minimizedGroups && viewItem == editorDocument"
         }
       ]
     },
     "views": {
-      "explorer": [
+      "minimizedGroups": [
         {
           "id": "minimizedGroups",
           "name": "Minimized Groups"
@@ -121,28 +128,27 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "webpack --mode production",
-    "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
-    "test-compile": "tsc -p ./",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "lint": "eslint src --ext ts",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "test": "node ./out/test/runTest.js"
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "^13.11.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
     "@types/vscode": "^1.44.0",
-    "@typescript-eslint/eslint-plugin": "^2.26.0",
-    "@typescript-eslint/parser": "^2.26.0",
-    "eslint": "^6.8.0",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0",
+    "eslint": "^8.57.0",
     "glob": "^7.1.6",
     "mocha": "^7.1.1",
     "ts-loader": "^7.0.2",
-    "typescript": "^3.8.3",
+    "typescript": "^5.4.5",
     "vscode-test": "^1.3.0",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"

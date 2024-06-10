@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getRootSepPath } from './utils';
 
 export class EditorDocument {
   contextValue: string;
@@ -15,6 +16,6 @@ export class EditorDocument {
 
   get documentName(): string {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
-    return (this.label || '').replace(`${root}/`, '');
+    return (this.label || '').replace(getRootSepPath(root), '');
   }
 }
