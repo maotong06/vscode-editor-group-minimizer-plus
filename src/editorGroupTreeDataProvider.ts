@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
+import { getRootSepPath } from './utils';
 
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
@@ -25,7 +26,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     if (element) {
       const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
       const documents = (element.documents || []).map(({ document }) => {
-        const groupMember = new EditorGroup(document?.fileName.replace(`${root}/`, ''));
+        const groupMember = new EditorGroup(document?.fileName.replace(getRootSepPath(root), ''));
         groupMember.parent = element;
         return groupMember;
       });
@@ -62,6 +63,56 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     const remaining = minimizedGroups.filter((mGroup) => mGroup !== group);
     return this.context.workspaceState.update('minimizedGroups', remaining)
       .then(() => this.refresh());
+  }
+
+  async minimizeAsAdd(): Promise<void> {
+    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+    let activeTextEditor = vscode.window.activeTextEditor;
+    let pinnedCheck = activeTextEditor;
+
+    return vscode.window.showQuickPick(minimizedGroups)
+    .then(async (picked) => {
+
+      if (picked) {
+        const documents: EditorDocument[] = picked.documents || [];
+        while (activeTextEditor !== undefined) {
+
+          const closingEditor = activeTextEditor;
+          await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    
+          if (!vscode.window.activeTextEditor) {
+            await vscode.commands.executeCommand('workbench.action.nextEditor');
+          }
+    
+          activeTextEditor = vscode.window.activeTextEditor;
+          if (activeTextEditor === pinnedCheck) {
+            break; // We may have hit a pinned editor since it didn't close
+          }
+    
+          if (closingEditor.document.uri.scheme === 'file') {
+            const hasCurrentDocIndex = documents.findIndex(doc => doc.document.uri.toString() === closingEditor.document.uri.toString())
+            if (hasCurrentDocIndex > -1) {
+              documents[hasCurrentDocIndex] = new EditorDocument(closingEditor.document, closingEditor.viewColumn);
+            } else {
+              documents.push(new EditorDocument(closingEditor.document, closingEditor.viewColumn));
+            }
+          }
+    
+          if (!vscode.window.activeTextEditor) { // Sometimes the timing is off between opening the next editor and checking if there are more to minimize
+            await vscode.commands.executeCommand('workbench.action.nextEditor');
+            activeTextEditor = vscode.window.activeTextEditor;
+          }
+    
+          pinnedCheck = activeTextEditor;
+        }
+
+        vscode.window.showInformationMessage(`Added to ${picked.label}`);
+        picked.refresh();
+        return this.context.workspaceState.update('minimizedGroups', minimizedGroups);
+      }
+    }).then(() => {
+      return this.refresh()
+    })
   }
 
   async minimize(): Promise<void> {
