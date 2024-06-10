@@ -75,8 +75,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
 
-    return vscode.window.showQuickPick(minimizedGroups)
-    .then(async (picked) => {
+    return vscode.window.showQuickPick(minimizedGroups as any[])
+    .then(async (picked: any) => {
 
       if (picked) {
         const documents: EditorDocument[] = picked.documents || [];
@@ -190,8 +190,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
   addToGroup(uri: vscode.Uri): Thenable<void> {
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-
-    return vscode.window.showQuickPick(minimizedGroups)
+    console.log('minimizedGroups', minimizedGroups)
+    return vscode.window.showQuickPick(minimizedGroups as any[])
       .then((picked) => {
         if (picked) {
           return vscode.workspace.openTextDocument(uri)
