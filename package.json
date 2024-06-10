@@ -1,20 +1,20 @@
 {
-  "name": "vscode-editor-group-minimizer",
-  "homepage": "https://github.com/suhay/vscode-editor-group-minimizer/blob/master/README.md",
+  "name": "vscode-editor-group-minimizer-plus",
+  "homepage": "https://github.com/maotong06/vscode-editor-group-minimizer-plus/blob/master/README.md",
   "bugs": {
-    "url": "https://github.com/suhay/vscode-editor-group-minimizer/issues"
+    "url": "https://github.com/maotong06/vscode-editor-group-minimizer-plus/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/suhay/vscode-editor-group-minimizer.git"
+    "url": "https://github.com/maotong06/vscode-editor-group-minimizer-plus.git"
   },
   "author": {
-    "name": "Matt Suhay",
-    "email": "matthew.suhay@gmail.com"
+    "name": "maotong06",
+    "email": "maotong06@qq.com"
   },
-  "displayName": "Editor Group Minimizer",
+  "displayName": "Editor Group Minimizer2",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.44.0"
   },
@@ -33,21 +33,21 @@
   ],
   "activationEvents": [
     "onView:minimizedGroups",
-    "onCommand:vscode-editor-group-minimizer.minimize"
+    "onCommand:vscode-editor-group-minimizer-plus.minimize"
   ],
   "main": "./dist/extension",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-editor-group-minimizer.minimize",
+        "command": "vscode-editor-group-minimizer-plus.minimize",
         "title": "Minimize Editor Group"
       },
       {
-        "command": "vscode-editor-group-minimizer.minimizeAsAdd",
+        "command": "vscode-editor-group-minimizer-plus.minimizeAsAdd",
         "title": "Minimize Editor Group To Add"
       },
       {
-        "command": "vscode-editor-group-minimizer.restore",
+        "command": "vscode-editor-group-minimizer-plus.restore",
         "title": "Restore",
         "icon": {
           "light": "resources/light/restore.svg",
@@ -55,7 +55,7 @@
         }
       },
       {
-        "command": "vscode-editor-group-minimizer.remove",
+        "command": "vscode-editor-group-minimizer-plus.remove",
         "title": "Remove",
         "icon": {
           "light": "resources/light/clear.svg",
@@ -63,57 +63,57 @@
         }
       },
       {
-        "command": "vscode-editor-group-minimizer.rename",
+        "command": "vscode-editor-group-minimizer-plus.rename",
         "title": "Rename"
       },
       {
-        "command": "vscode-editor-group-minimizer.addToGroup",
+        "command": "vscode-editor-group-minimizer-plus.addToGroup",
         "title": "Add to a Minimized Group"
       },
       {
-        "command": "vscode-editor-group-minimizer.removeFromGroup",
+        "command": "vscode-editor-group-minimizer-plus.removeFromGroup",
         "title": "Remove from Group"
       }
     ],
     "menus": {
       "editor/title/context": [
         {
-          "command": "vscode-editor-group-minimizer.addToGroup"
+          "command": "vscode-editor-group-minimizer-plus.addToGroup"
         }
       ],
       "editor/title": [
         {
-          "command": "vscode-editor-group-minimizer.minimize"
+          "command": "vscode-editor-group-minimizer-plus.minimize"
         },
         {
-          "command": "vscode-editor-group-minimizer.minimizeAsAdd"
+          "command": "vscode-editor-group-minimizer-plus.minimizeAsAdd"
         }
       ],
       "view/item/context": [
         {
-          "command": "vscode-editor-group-minimizer.remove",
+          "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup",
           "group": "inline"
         },
         {
-          "command": "vscode-editor-group-minimizer.restore",
+          "command": "vscode-editor-group-minimizer-plus.restore",
           "when": "view == minimizedGroups && viewItem == editorGroup",
           "group": "inline"
         },
         {
-          "command": "vscode-editor-group-minimizer.remove",
+          "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.restore",
+          "command": "vscode-editor-group-minimizer-plus.restore",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.rename",
+          "command": "vscode-editor-group-minimizer-plus.rename",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
-          "command": "vscode-editor-group-minimizer.removeFromGroup",
+          "command": "vscode-editor-group-minimizer-plus.removeFromGroup",
           "when": "view == minimizedGroups && viewItem == editorDocument"
         }
       ]
