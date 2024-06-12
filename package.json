@@ -35,7 +35,7 @@
     "onView:minimizedGroups",
     "onCommand:vscode-editor-group-minimizer-plus.minimize"
   ],
-  "main": "./dist/extension",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -128,6 +128,8 @@
     }
   },
   "scripts": {
+    "installvsce": "npm install -g vsce",
+    "build": "vsce package --no-yarn",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
