@@ -4,6 +4,7 @@ import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
 import { getRootSepPath } from './utils';
 
+const CANCEL = 'CANCEL'
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
@@ -70,7 +71,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       .then(() => this.refresh());
   }
 
-  async minimizeAsAdd(): Promise<void> {
+  async minimizeAsAdd(): Promise<any> {
     const minimizedGroups: any = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
@@ -83,6 +84,9 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
     return vscode.window.showQuickPick(minimizedGroupsOptions as any[])
     .then(async (picked: any) => {
+      if (!picked) {
+        return Promise.resolve(CANCEL)
+      }
       if (picked.label === userCustomOption) {
         return await this.minimize();
       } else 
@@ -127,10 +131,10 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     })
   }
 
-  async minimize(): Promise<void> {
+  async minimize(): Promise<any> {
     const groupName = await vscode.window.showInputBox();
     if (groupName === undefined) {
-      return Promise.resolve();
+      return Promise.resolve(CANCEL);
     }
     const documents: EditorDocument[] = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
@@ -246,7 +250,10 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   }
 
   async saveActiveAndRestore(group: EditorGroup) {
-    await this.minimizeAsAdd();
+    const res = await this.minimizeAsAdd();
+    if (res === CANCEL) {
+      return
+    }
     return this.restore(group);
   }
 
