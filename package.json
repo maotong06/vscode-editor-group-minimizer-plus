@@ -14,7 +14,7 @@
   },
   "displayName": "Editor Group Minimizer Plus",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "engines": {
     "vscode": "^1.44.0"
   },
@@ -27,7 +27,7 @@
     "tabs"
   ],
   "license": "MIT",
-  "publisher": "suhay",
+  "publisher": "matong06",
   "categories": [
     "Other"
   ],
@@ -35,7 +35,7 @@
     "onView:minimizedGroups",
     "onCommand:vscode-editor-group-minimizer-plus.minimize"
   ],
-  "main": "./dist/extension",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -45,6 +45,10 @@
       {
         "command": "vscode-editor-group-minimizer-plus.minimizeAsAdd",
         "title": "Minimize Editor Group To Add"
+      },
+      {
+        "command": "vscode-editor-group-minimizer-plus.clearAllMinimizerGroups",
+        "title": "Minimize Editor Group All Clear"
       },
       {
         "command": "vscode-editor-group-minimizer-plus.restore",
@@ -60,6 +64,14 @@
         "icon": {
           "light": "resources/light/clear.svg",
           "dark": "resources/dark/clear.svg"
+        }
+      },
+      {
+        "command": "vscode-editor-group-minimizer-plus.saveActiveAndRestore",
+        "title": "saveActiveAndRestore",
+        "icon": {
+          "light": "resources/light/saveActiveAndRestore.svg",
+          "dark": "resources/dark/saveActiveAndRestore.svg"
         }
       },
       {
@@ -101,11 +113,20 @@
           "group": "inline"
         },
         {
+          "command": "vscode-editor-group-minimizer-plus.saveActiveAndRestore",
+          "when": "view == minimizedGroups && viewItem == editorGroup",
+          "group": "inline"
+        },
+        {
           "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
           "command": "vscode-editor-group-minimizer-plus.restore",
+          "when": "view == minimizedGroups && viewItem == editorGroup"
+        },
+        {
+          "command": "vscode-editor-group-minimizer-plus.saveActiveAndRestore",
           "when": "view == minimizedGroups && viewItem == editorGroup"
         },
         {
@@ -128,6 +149,8 @@
     }
   },
   "scripts": {
+    "installvsce": "npm install -g vsce",
+    "build": "vsce package --no-yarn",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",

@@ -4,6 +4,7 @@ import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
 import { getRootSepPath } from './utils';
 
+const CANCEL = 'CANCEL'
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
@@ -70,14 +71,25 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       .then(() => this.refresh());
   }
 
-  async minimizeAsAdd(): Promise<void> {
-    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+  async minimizeAsAdd(): Promise<any> {
+    const minimizedGroups: any = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
     let pinnedCheck = activeTextEditor;
+    const userCustomOption = 'CUSTOM INPUT...';
+    // 增加自定义输入选项
+    const minimizedGroupsOptions = minimizedGroups.concat([{
+      label: userCustomOption,
+      documents: [],
+    }]);
 
-    return vscode.window.showQuickPick(minimizedGroups as any[])
+    return vscode.window.showQuickPick(minimizedGroupsOptions as any[])
     .then(async (picked: any) => {
-
+      if (!picked) {
+        return Promise.resolve(CANCEL)
+      }
+      if (picked.label === userCustomOption) {
+        return await this.minimize();
+      } else 
       if (picked) {
         const documents: EditorDocument[] = picked.documents || [];
         while (activeTextEditor !== undefined) {
@@ -95,7 +107,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
           }
     
           if (closingEditor.document.uri.scheme === 'file') {
-            const hasCurrentDocIndex = documents.findIndex(doc => doc.document.uri.toString() === closingEditor.document.uri.toString())
+            const hasCurrentDocIndex = documents.findIndex(doc => doc.document.uri.toString() === closingEditor.document.uri.toString());
             if (hasCurrentDocIndex > -1) {
               documents[hasCurrentDocIndex] = new EditorDocument(closingEditor.document, closingEditor.viewColumn);
             } else {
@@ -113,14 +125,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
         vscode.window.showInformationMessage(`Added to ${picked.label}`);
         picked.refresh();
-        return this.context.workspaceState.update('minimizedGroups', minimizedGroups);
+        await this.context.workspaceState.update('minimizedGroups', minimizedGroups);
+        return this.refresh();
       }
-    }).then(() => {
-      return this.refresh()
     })
   }
 
-  async minimize(): Promise<void> {
+  async minimize(): Promise<any> {
+    const groupName = await vscode.window.showInputBox();
+    if (groupName === undefined) {
+      return Promise.resolve(CANCEL);
+    }
     const documents: EditorDocument[] = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
@@ -151,7 +166,8 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       pinnedCheck = activeTextEditor;
     }
 
-    const label = `Group ${minimizedGroups.length + 1}`;
+    const label = groupName || `Group ${minimizedGroups.length + 1}`;
+    // const label = `Group ${minimizedGroups.length + 1}`;
     minimizedGroups.push(new EditorGroup(
       label, 
       vscode.TreeItemCollapsibleState.Collapsed, 
@@ -190,7 +206,6 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
   addToGroup(uri: vscode.Uri): Thenable<void> {
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-    console.log('minimizedGroups', minimizedGroups)
     return vscode.window.showQuickPick(minimizedGroups as any[])
       .then((picked) => {
         if (picked) {
@@ -232,5 +247,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
     return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
       .then(() => this.refresh());
+  }
+
+  async saveActiveAndRestore(group: EditorGroup) {
+    const res = await this.minimizeAsAdd();
+    if (res === CANCEL) {
+      return
+    }
+    return this.restore(group);
+  }
+
+  clearAllMinimizerGroups() {
+    return this.clear().then(() => this.refresh());
   }
 }
