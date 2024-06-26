@@ -121,6 +121,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   }
 
   async minimize(): Promise<void> {
+    const groupName = await vscode.window.showInputBox();
     const documents: EditorDocument[] = [];
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
@@ -151,7 +152,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       pinnedCheck = activeTextEditor;
     }
 
-    const label = `Group ${minimizedGroups.length + 1}`;
+    const label = groupName || `Group ${minimizedGroups.length + 1}`;
     minimizedGroups.push(new EditorGroup(
       label, 
       vscode.TreeItemCollapsibleState.Collapsed, 
