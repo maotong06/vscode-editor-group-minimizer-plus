@@ -7,6 +7,8 @@ fork from `https://github.com/suhay/vscode-editor-group-minimizer`
 - 增加了添加到已有group
 - 增加了文件图标显示
 - 增加对文件点击打开
+- 增加默认需要命名
+- 增加将当前标签页与保存的group进行替换
 -------
 
 # origin Readme
