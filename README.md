@@ -25,7 +25,19 @@ Quickly save a list of all open Editor tabs and place them into an easily manage
 
 > Note: This does not save or edit the files within the list. It only saves, restores, and removes the references from the view. The files will remain untouched.
 
-![preview](images/preview.gif)
+new group:
+
+![new group](images/新建.gif)
+
+add one document to a existing group:
+![add one document to a existing group](images/添加单文件到组.gif)
+
+add all document to a existing group:
+![add all document to a existing group](images/添加到组.gif)
+
+swap all document save to a group, and restore selected group:
+![swap all document save to a group, and restore selected group](images/添加到组.gif)
+
 
 ## Known Issues
 
