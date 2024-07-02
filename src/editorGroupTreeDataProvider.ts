@@ -4,7 +4,7 @@ import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
 import { getRootSepPath } from './utils';
 
-const CANCEL = 'CANCEL'
+const CANCEL = 'CANCEL';
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
 	private _onDidChangeTreeData: vscode.EventEmitter<EditorGroup | undefined> = new vscode.EventEmitter<EditorGroup | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EditorGroup | undefined> = this._onDidChangeTreeData.event;
@@ -70,7 +70,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     return this.context.workspaceState.update('minimizedGroups', remaining)
       .then(() => this.refresh());
   }
-
+  /** 将当前所有文件添加进组 */
   async minimizeAsAdd(): Promise<any> {
     const minimizedGroups: any = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     let activeTextEditor = vscode.window.activeTextEditor;
@@ -82,10 +82,12 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       documents: [],
     }]);
 
-    return vscode.window.showQuickPick(minimizedGroupsOptions as any[])
+    return vscode.window.showQuickPick(minimizedGroupsOptions as any[], {
+      placeHolder: 'Please select a group or customize a new group'
+    })
     .then(async (picked: any) => {
       if (!picked) {
-        return Promise.resolve(CANCEL)
+        return Promise.resolve(CANCEL);
       }
       if (picked.label === userCustomOption) {
         return await this.minimize();
@@ -128,11 +130,13 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
         await this.context.workspaceState.update('minimizedGroups', minimizedGroups);
         return this.refresh();
       }
-    })
+    });
   }
 
   async minimize(): Promise<any> {
-    const groupName = await vscode.window.showInputBox();
+    const groupName = await vscode.window.showInputBox({
+      prompt: 'Please enter a group name'
+    });
     if (groupName === undefined) {
       return Promise.resolve(CANCEL);
     }
@@ -190,7 +194,9 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   }
 
   rename(group: EditorGroup): Thenable<void> {
-    return vscode.window.showInputBox()
+    return vscode.window.showInputBox({
+      prompt: 'Please enter a group name'
+    })
       .then((value) => {
         const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
         const oldGroup = minimizedGroups.find((mGroup) => mGroup === group);
@@ -204,9 +210,12 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       .then(() => this.refresh());
   }
 
+  /** 将当前文件添加进组 */
   addToGroup(uri: vscode.Uri): Thenable<void> {
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
-    return vscode.window.showQuickPick(minimizedGroups as any[])
+    return vscode.window.showQuickPick(minimizedGroups as any[], {
+      placeHolder: 'Please select a group'
+    })
       .then((picked) => {
         if (picked) {
           return vscode.workspace.openTextDocument(uri)
@@ -252,7 +261,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   async saveActiveAndRestore(group: EditorGroup) {
     const res = await this.minimizeAsAdd();
     if (res === CANCEL) {
-      return
+      return;
     }
     return this.restore(group);
   }
