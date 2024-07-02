@@ -36,7 +36,7 @@ add all document to a existing group:
 ![add all document to a existing group](images/添加到组.gif)
 
 swap all document save to a group, and restore selected group:
-![swap all document save to a group, and restore selected group](images/添加到组.gif)
+![swap all document save to a group, and restore selected group](images/交换组.gif)
 
 
 ## Known Issues
