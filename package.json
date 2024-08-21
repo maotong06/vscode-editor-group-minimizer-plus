@@ -105,17 +105,17 @@
         {
           "command": "vscode-editor-group-minimizer-plus.remove",
           "when": "view == minimizedGroups && viewItem == editorGroup",
-          "group": "inline"
+          "group": "inline@3"
         },
         {
           "command": "vscode-editor-group-minimizer-plus.restore",
           "when": "view == minimizedGroups && viewItem == editorGroup",
-          "group": "inline"
+          "group": "inline@1"
         },
         {
           "command": "vscode-editor-group-minimizer-plus.saveActiveAndRestore",
           "when": "view == minimizedGroups && viewItem == editorGroup",
-          "group": "inline"
+          "group": "inline@2"
         },
         {
           "command": "vscode-editor-group-minimizer-plus.remove",
