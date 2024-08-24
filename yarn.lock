@@ -1974,6 +1974,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dayjs@npm:^1.11.13":
+  version: 1.11.13
+  resolution: "dayjs@npm:1.11.13"
+  checksum: f388db88a6aa93956c1f6121644e783391c7b738b73dbc54485578736565c8931bdfba4bb94e9b1535c6e509c97d5deb918bbe1ae6b34358d994de735055cca9
+  languageName: node
+  linkType: hard
+
 "debug@npm:3.2.6":
   version: 3.2.6
   resolution: "debug@npm:3.2.6"
@@ -7064,6 +7071,7 @@ __metadata:
     "@typescript-eslint/parser": ^7.11.0
     "@vscode/test-cli": ^0.0.9
     "@vscode/test-electron": ^2.4.0
+    dayjs: ^1.11.13
     esbuild: ^0.21.4
     eslint: ^8.57.0
     glob: ^7.1.6

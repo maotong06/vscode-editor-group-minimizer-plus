@@ -25,3 +25,4 @@ export const getDocumentPathObj = (document: vscode.TextDocument) => {
     fileName
   }
 }
+
