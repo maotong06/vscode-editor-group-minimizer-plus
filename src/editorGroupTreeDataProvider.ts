@@ -288,7 +288,17 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
     if (!str) {
       return;
     }
-    const newGroups: IStorageGroup = JSON.parse(str);
+    let newGroups: IStorageGroup
+    try {
+      newGroups = JSON.parse(str);
+    } catch (error) {
+      vscode.window.showErrorMessage('Import file failed: Invalid file format');
+      return;
+    }
+    if (!isIStorageGroup(newGroups)) {
+      vscode.window.showErrorMessage('Import file failed: Invalid file format');
+      return;
+    }
     const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
     this.hasFileError = false
     let isAlwaysMerge = false
@@ -384,6 +394,16 @@ function pushDocumentsToArrayAsUniq(documents: EditorDocument[], document: Edito
   } else {
     documents.push(document);
   }
+}
+
+// 检查对象格式满足要求 IStorageGroup
+function isIStorageGroup(obj: any): obj is IStorageGroup {
+  console.log('Array.isArray(obj)', Array.isArray(obj))
+  return Array.isArray(obj) && obj.every(item => {
+    return typeof item.label === 'string' && Array.isArray(item.documents) && item.documents.every((doc: any) => {
+      return typeof doc.relativePath === 'string'
+    })
+  })
 }
 
 enum EMergeType {
