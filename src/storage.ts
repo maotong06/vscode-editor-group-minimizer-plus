@@ -5,7 +5,16 @@ import dayjs from 'dayjs'
 
 // 保存到文件
 export async function exportFile(getContent: () => string) {
-    const fileName = `group-minimizer-plus-${dayjs().format('YYYY-MM-DD')}.json`;
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    let projectName = '';
+    if (!workspaceFolders) {
+      projectName = ''
+    } else {
+      const rootPath = workspaceFolders[0].uri.fsPath;
+      // 获取项目名称
+      projectName = path.basename(rootPath) + '-';
+    }
+    const fileName = `${projectName}minimizer-group-${dayjs().format('YYYY-MM-DD')}.json`;
     // 选择导出目录
     const uri = await vscode.window.showSaveDialog({
         defaultUri: vscode.Uri.file(path.join(vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '', fileName)),
