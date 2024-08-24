@@ -21,7 +21,7 @@ export class EditorGroup extends vscode.TreeItem {
 
     this.description = this.getDesc()
     if (this.contextValue === 'editorGroup') {
-      this.tooltip = this._description.tooltip;
+      this.tooltip = this._descriptionAndTooltip.tooltip;
     }
     if (this.contextValue === 'editorDocument') {
       this.command = {
@@ -36,11 +36,11 @@ export class EditorGroup extends vscode.TreeItem {
     if (this.customDesc) {
       return this.customDesc;
     } else {
-      return this._description.desc;
+      return this._descriptionAndTooltip.desc;
     }
   }
 
-  private get _description(): { desc: string, tooltip: string } {
+  private get _descriptionAndTooltip(): { desc: string, tooltip: string } {
     if (!this?.documents?.length) {
       return {
         desc: '',
@@ -82,7 +82,7 @@ export class EditorGroup extends vscode.TreeItem {
   refresh() {
     this.description = this.getDesc();
     if (this.contextValue === 'editorGroup') {
-      this.tooltip = this._description.tooltip;
+      this.tooltip = this._descriptionAndTooltip.tooltip;
     }
   }
 }
