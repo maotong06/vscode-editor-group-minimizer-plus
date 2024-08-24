@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { EditorDocument } from './editorDocument';
-import { getRootSepPath } from './utils';
+import { getDocumentPathObj } from './utils';
 
 export class EditorGroup extends vscode.TreeItem {
   contextValue: string;
@@ -14,12 +14,13 @@ export class EditorGroup extends vscode.TreeItem {
     public readonly collapsibleState?: vscode.TreeItemCollapsibleState,
     public readonly documents?: EditorDocument[],
     public readonly resourceUri?: vscode.Uri,  // 文件的 URI
+    public readonly customDesc?: string,
   ) {
     super(label, collapsibleState);
     this.contextValue = collapsibleState && documents ? 'editorGroup' : 'editorDocument';
 
     const des = this._description;
-    this.description = des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : '';
+    this.description = this.getDesc()
     this.tooltip = `${this._description.join(', ')}`;
     if (this.contextValue === 'editorDocument') {
       this.command = {
@@ -30,9 +31,20 @@ export class EditorGroup extends vscode.TreeItem {
     }
   }
 
+  private getDesc() {
+    if (this.customDesc) {
+      return this.customDesc;
+    } else {
+      const des = this._description;
+      return des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : ''
+    }
+  }
+
   private get _description(): string[] {
-    const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
-    return (this.documents || []).map(({ document }) => document?.fileName.replace(getRootSepPath(root), ''));
+    return (this.documents || []).map(({ document }) => {
+      const { relativeDir } = getDocumentPathObj(document);
+      return relativeDir;
+    });
   }
 
   get parent(): EditorGroup | undefined {

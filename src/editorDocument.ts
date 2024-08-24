@@ -15,7 +15,6 @@ export class EditorDocument {
   }
 
   get documentName(): string {
-    const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
-    return (this.label || '').replace(getRootSepPath(root), '');
+    return this.label || ''
   }
 }

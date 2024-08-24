@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
-import { getRootSepPath } from './utils';
+import { getDocumentPathObj } from './utils';
 
 const CANCEL = 'CANCEL';
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
@@ -25,13 +26,13 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
 	getChildren(element?: EditorGroup): Thenable<EditorGroup[] | undefined> {
     if (element) {
-      const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
       const documents = (element.documents || []).map(({ document }) => {
-        const groupMember = new EditorGroup(document?.fileName.replace(
-          getRootSepPath(root), ''),
+        const { fileName, relativeDir } = getDocumentPathObj(document);
+        const groupMember = new EditorGroup(fileName,
           undefined,
           undefined,
-          document?.uri
+          document?.uri,
+          relativeDir,
         );
         groupMember.parent = element;
         return groupMember;
