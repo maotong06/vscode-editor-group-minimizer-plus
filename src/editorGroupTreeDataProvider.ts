@@ -275,7 +275,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       res.push({
         label: group.label,
         documents: group.documents?.map(({ document }) => ({
-          relativePath: getDocumentPathObj(document).relativePath
+          relativePath: path.posix.join(...(getDocumentPathObj(document).relativePath.split(path.sep)))
         })) || []
       });
     })
