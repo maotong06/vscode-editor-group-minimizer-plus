@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 import { EditorDocument } from './editorDocument';
 import { EditorGroup } from './editorGroup';
-import { getRootSepPath } from './utils';
+import { getDocumentPathObj } from './utils';
+import { minimizedGroupChannel } from './channel';
 
 const CANCEL = 'CANCEL';
 export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<EditorGroup> {
@@ -25,13 +27,13 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
 
 	getChildren(element?: EditorGroup): Thenable<EditorGroup[] | undefined> {
     if (element) {
-      const root = vscode.workspace.workspaceFolders?.[0]?.uri?.path ?? '';
       const documents = (element.documents || []).map(({ document }) => {
-        const groupMember = new EditorGroup(document?.fileName.replace(
-          getRootSepPath(root), ''),
+        const { fileName, relativeDir } = getDocumentPathObj(document);
+        const groupMember = new EditorGroup(fileName,
           undefined,
           undefined,
-          document?.uri
+          document?.uri,
+          relativeDir,
         );
         groupMember.parent = element;
         return groupMember;
@@ -109,12 +111,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
           }
     
           if (closingEditor.document.uri.scheme === 'file') {
-            const hasCurrentDocIndex = documents.findIndex(doc => doc.document.uri.toString() === closingEditor.document.uri.toString());
-            if (hasCurrentDocIndex > -1) {
-              documents[hasCurrentDocIndex] = new EditorDocument(closingEditor.document, closingEditor.viewColumn);
-            } else {
-              documents.push(new EditorDocument(closingEditor.document, closingEditor.viewColumn));
-            }
+            pushDocumentsToArrayAsUniq(documents,new EditorDocument(closingEditor.document, closingEditor.viewColumn))
           }
     
           if (!vscode.window.activeTextEditor) { // Sometimes the timing is off between opening the next editor and checking if there are more to minimize
@@ -159,7 +156,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       }
 
       if (closingEditor.document.uri.scheme === 'file') {
-        documents.push(new EditorDocument(closingEditor.document, closingEditor.viewColumn));
+        pushDocumentsToArrayAsUniq(documents, new EditorDocument(closingEditor.document, closingEditor.viewColumn))
       }
 
       if (!vscode.window.activeTextEditor) { // Sometimes the timing is off between opening the next editor and checking if there are more to minimize
@@ -221,7 +218,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
           return vscode.workspace.openTextDocument(uri)
             .then((document) => {
               if (document) {
-                picked.documents?.push(new EditorDocument(document));
+                pushDocumentsToArrayAsUniq(picked.documents, new EditorDocument(document));
                 vscode.window.showInformationMessage(`Added to ${picked.label}`);
               }
               picked.refresh();
@@ -241,7 +238,7 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
       if (oldGroupIdx >= 0) {
         const oldGroup = minimizedGroups[oldGroupIdx];
 
-        const i = oldGroup?.documents?.findIndex((doc) => doc.documentName === group.label) ?? -1;
+        const i = oldGroup?.documents?.findIndex((doc) => doc.document.uri === group.resourceUri) ?? -1;
         if (i >= 0) {
           oldGroup?.documents?.splice(i, 1);
         }
@@ -269,4 +266,164 @@ export class EditorGroupTreeDataProvider implements vscode.TreeDataProvider<Edit
   clearAllMinimizerGroups() {
     return this.clear().then(() => this.refresh());
   }
+
+  /** 序列化 */
+  stringifyGroup() {
+    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+    const res: IStorageGroup = []
+    minimizedGroups.forEach(group => {
+      res.push({
+        label: group.label,
+        documents: group.documents?.map(({ document }) => ({
+          relativePath: path.posix.join(...(getDocumentPathObj(document).relativePath.split(path.sep)))
+        })) || []
+      });
+    })
+    return JSON.stringify(res, null, 2);
+  }
+
+  private hasFileError = false
+  /** 解析导入文件 */
+  async parseGroup(str: string) {
+    if (!str) {
+      return;
+    }
+    let newGroups: IStorageGroup
+    try {
+      newGroups = JSON.parse(str);
+    } catch (error) {
+      vscode.window.showErrorMessage('Import file failed: Invalid file format');
+      return;
+    }
+    if (!isIStorageGroup(newGroups)) {
+      vscode.window.showErrorMessage('Import file failed: Invalid file format');
+      return;
+    }
+    const minimizedGroups = this.context.workspaceState.get<Array<EditorGroup>>('minimizedGroups') || [];
+    this.hasFileError = false
+    let isAlwaysMerge = false
+    let isAlwaysCreate = false
+    for (const group of newGroups) {
+      const newGroupLabel = group.label;
+      const oldGroup = minimizedGroups.find(mGroup => mGroup.label === newGroupLabel);
+      if (oldGroup) {
+        let mergeType = {} as (typeof mergeTypes[0] | undefined);
+        if (!isAlwaysMerge && !isAlwaysCreate) {
+          mergeType = await vscode.window.showQuickPick(mergeTypes, {
+            title: `Group ${newGroupLabel} already exists, please select the merge type`
+          });
+        }
+        if (!mergeType) {
+          continue;
+        }
+        if (mergeType.label === EMergeType.MERGE_TO_OLD_GROUP_ALWAYS) {
+          isAlwaysMerge = true
+        }
+        if (mergeType.label === EMergeType.CREATE_NEW_GROUP_ALWAYS) {
+          isAlwaysCreate = true
+        }
+        if (isAlwaysMerge || mergeType.label === EMergeType.MERGE_TO_OLD_GROUP) {
+          await this.pushDocumentsByRelativePathDocuments(oldGroup, group.documents);
+          oldGroup.refresh();
+        }
+        if (isAlwaysCreate || mergeType.label === EMergeType.CREATE_NEW_GROUP) {
+          const newGroupObj = new EditorGroup(newGroupLabel, vscode.TreeItemCollapsibleState.Collapsed, []);
+          await this.pushDocumentsByRelativePathDocuments(newGroupObj, group.documents);
+          minimizedGroups.push(newGroupObj);
+        }
+      } else {
+        const newGroupObj = new EditorGroup(newGroupLabel, vscode.TreeItemCollapsibleState.Collapsed, []);
+        await this.pushDocumentsByRelativePathDocuments(newGroupObj, group.documents);
+        minimizedGroups.push(newGroupObj);
+      }
+    }
+
+    vscode.window.showInformationMessage(`Import file completed\n Group: ${newGroups.map(group => group.label).join(', ')}`);
+
+    if (this.hasFileError) {
+      // 消息中增加链接，点击直接打开输出面板
+      vscode.window
+        .showErrorMessage(
+          `Import file failed Please click to view output panel`,
+          "view"
+        )
+        .then((selection) => {
+          if (selection) {
+            minimizedGroupChannel.show();
+          }
+        });
+    }
+
+    return this.context.workspaceState.update('minimizedGroups', minimizedGroups)
+      .then(() => this.refresh());
+  }
+
+  // 根据相对路径导入docments, 并记录错误
+  private async pushDocumentsByRelativePathDocuments(group: EditorGroup, relativePathDocuments: { relativePath: string }[]) {
+    for (const { relativePath } of relativePathDocuments) {
+      const uri = vscode.Uri.file(path.join(vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '', relativePath));
+      try {
+        const document = await vscode.workspace.openTextDocument(uri);
+        pushDocumentsToArrayAsUniq(group.documents!, new EditorDocument(document));
+      } catch (error: any) {
+        // 在输出面板中打印错误
+        minimizedGroupChannel.appendLine(`import File error, Group: ${group.label}
+path: ${relativePath}
+error: ${error.message}\n`);
+          this.hasFileError = true
+      }
+    }
+  }
+
 }
+
+type IStorageGroup = {
+  label: string;
+  documents: {
+    relativePath: string;
+  }[]
+}[]
+
+// 将文档添加到数组中，如果已存在则替换
+function pushDocumentsToArrayAsUniq(documents: EditorDocument[], document: EditorDocument) {
+  const hasCurrentDocIndex = documents.findIndex(doc => {
+    return doc.document.uri.fsPath === document.document.uri.fsPath
+  });
+  if (hasCurrentDocIndex > -1) {
+    documents[hasCurrentDocIndex] = document;
+  } else {
+    documents.push(document);
+  }
+}
+
+// 检查对象格式满足要求 IStorageGroup
+function isIStorageGroup(obj: any): obj is IStorageGroup {
+  console.log('Array.isArray(obj)', Array.isArray(obj))
+  return Array.isArray(obj) && obj.every(item => {
+    return typeof item.label === 'string' && Array.isArray(item.documents) && item.documents.every((doc: any) => {
+      return typeof doc.relativePath === 'string'
+    })
+  })
+}
+
+enum EMergeType {
+  MERGE_TO_OLD_GROUP = 'Merge To Old Group',
+  CREATE_NEW_GROUP = 'Create New Group',
+  MERGE_TO_OLD_GROUP_ALWAYS = 'Merge To Old Group (always)',
+  CREATE_NEW_GROUP_ALWAYS = 'Create New Group (always)',
+}
+
+const mergeTypes = [
+  {
+    label: EMergeType.MERGE_TO_OLD_GROUP_ALWAYS,
+  },
+  {
+    label: EMergeType.CREATE_NEW_GROUP_ALWAYS,
+  },
+  {
+    label: EMergeType.MERGE_TO_OLD_GROUP,
+  },
+  {
+    label: EMergeType.CREATE_NEW_GROUP,
+  },
+]

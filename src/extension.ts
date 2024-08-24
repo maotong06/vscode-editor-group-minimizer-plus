@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { EditorGroupTreeDataProvider } from './editorGroupTreeDataProvider';
+import { exportFile, importFile } from './storage';
 
 export function activate(context: vscode.ExtensionContext) {
   const editorGroupTreeDataProvider = new EditorGroupTreeDataProvider(context);
@@ -16,6 +17,21 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('vscode-editor-group-minimizer-plus.clearAllMinimizerGroups', group => editorGroupTreeDataProvider.clearAllMinimizerGroups());
 
   context.subscriptions.push(editorGroupTreeDataProvider);
+
+  // 导出
+  let exportDisposable = vscode.commands.registerCommand('vscode-editor-group-minimizer-plus.exportFile', () => {
+    exportFile(() => {
+      return editorGroupTreeDataProvider.stringifyGroup();
+    });
+  });
+  // 导入
+  let importDisposable = vscode.commands.registerCommand('vscode-editor-group-minimizer-plus.importFile', () => {
+    importFile((str) => {
+      return editorGroupTreeDataProvider.parseGroup(str);
+    });
+  });
+  context.subscriptions.push(exportDisposable);
+  context.subscriptions.push(importDisposable);
 }
 
 export function deactivate() {}

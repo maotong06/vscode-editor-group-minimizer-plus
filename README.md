@@ -2,6 +2,13 @@
 
 fork from `https://github.com/suhay/vscode-editor-group-minimizer`
 
+------
+2.1.0
+
+- 增加导出文件，导入功能
+- 修改按钮位置
+- 修改文件名显示样式
+
 --------
 
 - 增加了添加到已有group
