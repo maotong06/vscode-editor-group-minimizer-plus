@@ -19,9 +19,10 @@ export class EditorGroup extends vscode.TreeItem {
     super(label, collapsibleState);
     this.contextValue = collapsibleState && documents ? 'editorGroup' : 'editorDocument';
 
-    const des = this._description;
     this.description = this.getDesc()
-    this.tooltip = `${this._description.join(', ')}`;
+    if (this.contextValue === 'editorGroup') {
+      this.tooltip = this._description.tooltip;
+    }
     if (this.contextValue === 'editorDocument') {
       this.command = {
           command: 'vscode.open',  // 使用 vscode.open 命令打开文件
@@ -35,16 +36,39 @@ export class EditorGroup extends vscode.TreeItem {
     if (this.customDesc) {
       return this.customDesc;
     } else {
-      const des = this._description;
-      return des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : ''
+      return this._description.desc;
     }
   }
 
-  private get _description(): string[] {
-    return (this.documents || []).map(({ document }) => {
-      const { relativeDir } = getDocumentPathObj(document);
-      return relativeDir;
-    });
+  private get _description(): { desc: string, tooltip: string } {
+    if (!this?.documents?.length) {
+      return {
+        desc: '',
+        tooltip: ''
+      }
+    }
+    // 获取公共最长路径
+    let commonPath = ''
+    const relativeDirList: string[] = [];
+    const relativePathList: string[] = [];
+    (this.documents || []).forEach(({ document }) => {
+      const { relativePath, relativeDir } = getDocumentPathObj(document);
+      relativeDirList.push(relativeDir);
+      relativePathList.push(relativePath);
+    })
+    const firstLen = relativeDirList[0]?.length || 0;
+    for (let i = 0; i < firstLen; i++) {
+      const char = relativeDirList[0][i];
+      if (relativeDirList.some((dir) => dir[i] !== char)) {
+        break;
+      }
+      commonPath += char;
+    }
+    commonPath  = commonPath.length > 30 ? `${commonPath.substr(0, 30)}...` : `${commonPath}...` 
+    return {
+      desc: `${commonPath}`,
+      tooltip: relativePathList.join(', ')
+    };
   }
 
   get parent(): EditorGroup | undefined {
@@ -56,8 +80,9 @@ export class EditorGroup extends vscode.TreeItem {
   }
 
   refresh() {
-    const des = this._description;
-    this.description = des.length > 0 ? `${des.join(', ').substr(0, 30)}...` : '';
-    this.tooltip = `${this._description.join(', ')}`;
+    this.description = this.getDesc();
+    if (this.contextValue === 'editorGroup') {
+      this.tooltip = this._description.tooltip;
+    }
   }
 }
