@@ -14,7 +14,7 @@
   },
   "displayName": "Editor Group Minimizer Plus",
   "description": "Minimize groups of editor tabs in VSCode",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "engines": {
     "vscode": "^1.44.0"
   },
@@ -35,7 +35,7 @@
     "onView:minimizedGroups",
     "onCommand:vscode-editor-group-minimizer-plus.minimize"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -151,10 +151,16 @@
   "scripts": {
     "installvsce": "npm install -g vsce",
     "build": "vsce package --no-yarn",
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "vscode:prepublish": "yarn run package",
+    "compile": "yarn run check-types && yarn run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "yarn run check-types && yarn run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "check-types": "tsc --noEmit",
     "lint": "eslint src --ext ts",
     "test": "vscode-test"
   },
@@ -167,9 +173,11 @@
     "@typescript-eslint/parser": "^7.11.0",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.4.0",
+    "esbuild": "^0.21.4",
     "eslint": "^8.57.0",
     "glob": "^7.1.6",
     "mocha": "^7.1.1",
+    "npm-run-all": "^4.1.5",
     "ts-loader": "^7.0.2",
     "typescript": "^5.4.5",
     "vscode-test": "^1.3.0",
