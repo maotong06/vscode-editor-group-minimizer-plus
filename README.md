@@ -47,11 +47,11 @@ swap all document save to a group, and restore selected group:
 
 export group into a file:
 Command: `Minimized Export File`
-![export group into a file](images/导出组.gif)
+![export group into a file](images/exportGroup.gif)
 
 import group from a file:
 Command: `Minimized Import File`
-![import group from a file](images/导入组.gif)
+![import group from a file](images/importGroup.gif)
 
 ## Known Issues
 
