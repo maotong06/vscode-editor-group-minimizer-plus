@@ -18,7 +18,7 @@ export async function exportFile(getContent: () => string) {
     // 选择导出目录
     const uri = await vscode.window.showSaveDialog({
         defaultUri: vscode.Uri.file(path.join(vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '', fileName)),
-        saveLabel: '导出文件'
+        saveLabel: 'Exporting files'
     });
 
     if (uri) {
@@ -27,13 +27,13 @@ export async function exportFile(getContent: () => string) {
         // 写入文件到导出目录
         fs.writeFile(exportPath, getContent(), (err) => {
             if (err) {
-                vscode.window.showErrorMessage(`导出文件失败: ${err.message}`);
+                vscode.window.showErrorMessage(`Failed to export file: ${err.message}`);
             } else {
-                vscode.window.showInformationMessage(`文件已导出到: ${exportPath}`);
+                vscode.window.showInformationMessage(`The file has been exported to: ${exportPath}`);
             }
         });
     } else {
-        // vscode.window.showWarningMessage('未选择导出目录');
+        // vscode.window.showWarningMessage('Export directory not selected');
     }
 }
 
@@ -47,7 +47,7 @@ export async function importFile(importContent: (content: string) => void) {
         filters: {
             'JSON': ['json']
         },
-        openLabel: '导入文件'
+        openLabel: 'Importing files'
     });
 
     if (uri) {
@@ -56,12 +56,12 @@ export async function importFile(importContent: (content: string) => void) {
         // 读取文件内容
         fs.readFile(importPath, 'utf8', (err, data) => {
             if (err) {
-                vscode.window.showErrorMessage(`导入文件失败: ${err.message}`);
+                vscode.window.showErrorMessage(`Failed to import file: ${err.message}`);
             } else {
               importContent(data);
             }
         });
     } else {
-        // vscode.window.showWarningMessage('未选择导入文件');
+        // vscode.window.showWarningMessage('Import file not selected');
     }
 }
